@@ -1,16 +1,33 @@
 import React from 'react';
-import {TouchableOpacity, Text, StyleSheet, FlatList} from 'react-native';
+import {
+  TouchableOpacity,
+  TouchableOpacityProps,
+  Text,
+  StyleSheet,
+} from 'react-native';
 
-export const SkillCard = ({skill}) => {
+import {SkillData} from '../pages/Home';
+import {useTheme} from '../hooks/useTheme';
+
+interface SkillCardProps extends TouchableOpacityProps {
+  skill: SkillData;
+}
+
+export const SkillCard = ({skill, ...rest}: SkillCardProps) => {
+  const {colors} = useTheme();
+
   return (
-    <TouchableOpacity style={styles.buttonSkill} activeOpacity={0.7}>
-      <Text style={styles.textSkill}> {skill} </Text>
+    <TouchableOpacity
+      style={[styles.skillCard, {backgroundColor: colors.secondary}]}
+      activeOpacity={0.7}
+      {...rest}>
+      <Text style={[styles.textSkill, {color: colors.text}]}>{skill.name}</Text>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  buttonSkill: {
+  skillCard: {
     backgroundColor: '#1f1e25',
     padding: 15,
     borderRadius: 15,
@@ -19,8 +36,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   textSkill: {
-    color: '#fff',
     fontSize: 18,
+    color: '#fff',
     fontWeight: 'bold',
   },
 });

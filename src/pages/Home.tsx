@@ -7,18 +7,29 @@ import {
   Platform,
   FlatList,
   Alert,
+  Switch,
 } from 'react-native';
 
 import {Button} from '../components/Button';
 import {SkillCard} from '../components/SkillCard';
+import {Theme} from '../contexts/ThemeProvider';
+
+import {useTheme} from '../hooks/useTheme';
 
 const MIDDAY_HOUR = 12;
 const AFTERNOON_END_HOUR = 18;
 
+export interface SkillData {
+  id: string;
+  name: string;
+}
+
 export const Home = () => {
   const [newSkill, setNewSkill] = useState('');
   const [greeting, setGreeting] = useState('');
-  const [skills, setSkills] = useState([]);
+  const [skills, setSkills] = useState<SkillData[]>([]);
+
+  const {colors, theme, toggleTheme} = useTheme();
 
   function handleAddNewSkill() {
     if (!newSkill) {
@@ -26,11 +37,19 @@ export const Home = () => {
       return;
     }
 
-    setSkills(old => [...old, newSkill]);
+    const data: SkillData = {
+      id: new Date().getTime().toString(),
+      name: newSkill,
+    };
+
+    setSkills(old => [...old, data]);
     setNewSkill('');
   }
 
-  function itsAfternoon(hour) {
+  function handleRemoveSkill(id: string) {
+    setSkills(old => old.filter(skill => skill.id !== id));
+  }
+  function itsAfternoon(hour: number) {
     return hour >= MIDDAY_HOUR && hour < AFTERNOON_END_HOUR;
   }
 
@@ -44,13 +63,25 @@ export const Home = () => {
 
   return (
     <>
-      <View style={styles.container}>
-        <Text style={styles.title}>Welcome, Thiago! </Text>
-        <Text style={styles.greeting}>{greeting}</Text>
+      <View style={[styles.container, {backgroundColor: colors.bg}]}>
+        <View style={styles.header}>
+          <View>
+            <Text style={[styles.title, {color: colors.text}]}>
+              Welcome, Thiago!{' '}
+            </Text>
+            <Text style={[styles.greeting, {color: colors.text}]}>
+              {greeting}
+            </Text>
+          </View>
+          <Switch value={theme === Theme.dark} onValueChange={toggleTheme} />
+        </View>
 
         <TextInput
           value={newSkill}
-          style={styles.input}
+          style={[
+            styles.input,
+            {backgroundColor: colors.secondary, color: colors.text},
+          ]}
           placeholder="New skill"
           placeholderTextColor="#888"
           onChangeText={setNewSkill}
@@ -58,12 +89,21 @@ export const Home = () => {
 
         <Button onPress={handleAddNewSkill} title="Add" />
 
-        <Text style={[styles.title, {marginVertical: 30}]}> My skills </Text>
+        <Text
+          style={[styles.title, {color: colors.text}, {marginVertical: 30}]}>
+          My skills
+        </Text>
 
         <FlatList
-          keyExtractor={item => item}
+          keyExtractor={({id}) => id}
           data={skills}
-          renderItem={({item}) => <SkillCard skill={item} key={item} />}
+          renderItem={({item}) => (
+            <SkillCard
+              onPress={() => handleRemoveSkill(item.id)}
+              skill={item}
+              key={item.id}
+            />
+          )}
         />
       </View>
     </>
@@ -75,7 +115,11 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 30,
     paddingVertical: 70,
-    backgroundColor: '#121015',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
   },
   title: {
     fontSize: 24,
@@ -87,6 +131,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     padding: Platform.OS === 'ios' ? 15 : 10,
     marginTop: 30,
+    marginBottom: 10,
     borderRadius: 7,
   },
   greeting: {
